@@ -1,3 +1,5 @@
+const fetch = require('node-fetch');
+
 const fretePorEstado = {
     SP: 5.0,
     RJ: 6.5,
@@ -28,18 +30,17 @@ const fretePorEstado = {
     AP: 20.0
 }
 
-const calculaFrete = (cidade, estado) => {
-
+const calculaFrete = async (cep) => {
     try {
+        const endereco = await consultaCEP(cep);
 
-        const cidadeComparada = cidade.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(' ', '').toLowerCase();
-        const estadoComparado = estado.toUpperCase();
+        const cidadeComparada = endereco.localidade;
+        const estadoComparado = endereco.uf;
 
-        if (cidadeComparada == 'saopaulo') {
-
+        if (cidadeComparada == 'São Paulo') {
             const valorFrete = 0;
 
-            return valorFrete
+            return valorFrete;
         }
 
         const valorFrete = fretePorEstado[estadoComparado];
@@ -48,9 +49,21 @@ const calculaFrete = (cidade, estado) => {
     }
 
     catch (e) {
-
         return `Rota inválida!`;
     }     
+}
+
+const consultaCEP = async (cep) => {
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const json = await response.json();
+        console.log(json)
+
+        return json;
+
+    } catch (error) {
+        console.log(error);
+    }  
 }
 
 module.exports = calculaFrete;

@@ -4,7 +4,7 @@ const calculaFrete = require('./calculadoraFretes')
 
 const port = 3000;
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
     
     let requestUrl = url.parse(req.url, true);
  
@@ -12,12 +12,14 @@ const server = http.createServer((req, res) => {
 
         let requestUrlData = requestUrl.query;
 
-        const valorFrete = calculaFrete(requestUrlData.cidade, requestUrlData.estado);
+        console.log(requestUrlData.cep)
+
+        const valorFrete = await calculaFrete(requestUrlData.cep);
     
         return res.end(JSON.stringify({ 'valor frete': `${valorFrete}`}));
     }
 
-    const valorFrete = calculaFrete();
+    const valorFrete = await calculaFrete();
 
     res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
 
