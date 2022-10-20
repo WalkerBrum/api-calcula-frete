@@ -5,26 +5,23 @@ const calculaFrete = require('./calculadoraFretes')
 const port = 3000;
 
 const server = http.createServer(async (req, res) => {
-    
-    let requestUrl = url.parse(req.url, true);
- 
-    if (requestUrl.pathname === '/valorfrete/') {
+    try {
+        const { pathname, query: { cep } } = url.parse(req.url, true);
 
-        let requestUrlData = requestUrl.query;
+        if (pathname && pathname.includes('/valorfrete')) {
 
-        console.log(requestUrlData.cep)
+            const valorFrete = await calculaFrete(cep);
+        
+            res.end(JSON.stringify({ 'valor frete': `${valorFrete}`}));
+        } 
 
-        const valorFrete = await calculaFrete(requestUrlData.cep);
-    
-        return res.end(JSON.stringify({ 'valor frete': `${valorFrete}`}));
+    } catch (error) {
+        res
+        .writeHead(error.status ?? 500, { 'Content-Type': 'text/html; charset=utf-8' })
+        .end(JSON.stringify({ message: error.message}));   
     }
-
-    const valorFrete = await calculaFrete();
-
-    res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-
-    return res.end(JSON.stringify({ 'valor frete': `${valorFrete}`}));
-
+    
+    return;   
  });
  
 server.listen(port, () => console.log(`Servidor rodando em http://localhost:${port}/`));

@@ -30,40 +30,26 @@ const fretePorEstado = {
     AP: 20.0
 }
 
+const customError = (message, status) => ({ message, status});
+
 const calculaFrete = async (cep) => {
-    try {
-        const endereco = await consultaCEP(cep);
+        const { localidade, uf } = await consultaCEP(cep);
 
-        const cidadeComparada = endereco.localidade;
-        const estadoComparado = endereco.uf;
-
-        if (cidadeComparada == 'São Paulo') {
-            const valorFrete = 0;
-
-            return valorFrete;
+        if (localidade== 'São Paulo') {
+            return 0;
         }
 
-        const valorFrete = fretePorEstado[estadoComparado];
-
-        return valorFrete;
-    }
-
-    catch (e) {
-        return `Rota inválida!`;
-    }     
+        return fretePorEstado[uf];
 }
 
 const consultaCEP = async (cep) => {
-    try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        const json = await response.json();
-        console.log(json)
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
 
-        return json;
+    if (!response.ok) {
+        throw customError('CEP inválido', 400)
+    }
 
-    } catch (error) {
-        console.log(error);
-    }  
+    return response.json();
 }
 
 module.exports = calculaFrete;
