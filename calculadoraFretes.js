@@ -1,46 +1,28 @@
 const fetch = require('node-fetch');
 
-const fretePorEstado = {
-    SP: 5.0,
-    RJ: 6.5,
-    MG: 7.2,
-    PR: 8.0,
-    AM: 23.5,
-    AC: 23.5,
-    RO: 22.0,
-    RR: 22.0,
-    RS: 10.0,
-    SC: 10.0,
-    ES: 8.0,
-    MT: 11.5,
-    MS: 11.5,
-    GO: 11.5,
-    DF: 11.5,
-    BA: 15.0,
-    AL: 15.0,
-    CE: 15.0,
-    MA: 15.0,
-    PE: 15.0,
-    PI: 15.0,
-    SE: 15.0,
-    RN: 15.0,
-    PB: 15.0,
-    TO: 20.0,
-    PA: 20.0,
-    AP: 20.0
+const CEPLOJA = '13206765';
+const cdServico = '41106';
+
+const bodyRequest = (cepDestino) => {
+    return {
+        'nCdServico': cdServico,
+        'sCepOrigem': CEPLOJA,
+        'sCepDestino': cepDestino,
+        'nVlPeso': "1",
+        'nCdFormato': 1,
+        'nVlComprimento': 20,
+        'nVlAltura': 20,
+        'nVlLargura': 20,
+        'nVlDiametro': 0,
+        'sCdMaoPropria': "N",
+        'nVlValorDeclarado': 0,
+        'sCdAvisoRecebimento': "N",
+        'StrRetorno': "xml",
+        'nIndicaCalculo': 3
+    }
 }
 
 const customError = (message, status) => ({ message, status});
-
-const calculaFrete = async (cep) => {
-        const { localidade, uf } = await consultaCEP(cep);
-
-        if (localidade== 'São Paulo') {
-            return 0;
-        }
-
-        return fretePorEstado[uf];
-}
 
 const consultaCEP = async (cep) => {
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
@@ -52,4 +34,36 @@ const consultaCEP = async (cep) => {
     return response.json();
 }
 
-module.exports = calculaFrete;
+const requestApiCorreios = async (cep) => {
+    const url = bodyRequest(cep);
+
+    const response = await fetch('http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx?' + new URLSearchParams(url).toString());
+
+    const xml = await response.text();
+
+    return xml;
+}
+
+const infoEndereco = async (cep) => {
+    const endereco = await consultaCEP(cep);
+
+    return endereco;
+}
+
+const prazoEntrega = async (cep) => {
+    const xmlCorreios = await requestApiCorreios(cep);
+    const prazoEntrega = await xmlCorreios.match(/<PrazoEntrega>(.+)<\/PrazoEntrega>/);
+
+    return prazoEntrega[1];
+}
+
+const valorEntrega = async (cep) => {
+    const xmlCorreios = await requestApiCorreios(cep);
+    const valorEntrega = await xmlCorreios.match(/<Valor>(.+)<\/Valor>/);
+
+    return valorEntrega[1];
+}
+
+module.exports = { infoEndereco, prazoEntrega, valorEntrega };
+
+

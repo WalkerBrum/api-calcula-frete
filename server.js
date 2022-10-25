@@ -1,18 +1,30 @@
 const http = require('http');
 const url = require('url');
-const calculaFrete = require('./calculadoraFretes')
+const freteMetodos = require('./calculadoraFretes');
+// const infoEndereco = require('./calculadoraFretes/infoEndereco');
+// const valorEntrega = require('./calculadoraFretes');
+// const prazoEntrega = require('./calculadoraFretes');
 
 const port = 3000;
+
+const { prazoEntrega, valorEntrega, infoEndereco } = freteMetodos;
 
 const server = http.createServer(async (req, res) => {
     try {
         const { pathname, query: { cep } } = url.parse(req.url, true);
 
-        if (pathname && pathname.includes('/valorfrete')) {
-
-            const valorFrete = await calculaFrete(cep);
+        if (pathname && pathname.includes('/endereco')) {
+            const endereco = await infoEndereco(cep);
         
-            res.end(JSON.stringify({ 'valor frete': `${valorFrete}`}));
+            res.end(JSON.stringify({endereco}));
+
+        } 
+        
+        if (pathname && pathname.includes('/frete')) {
+            const prazo = await prazoEntrega(cep);
+            const frete = await valorEntrega(cep);
+
+            res.end(JSON.stringify({ 'prazo entrega': `${prazo}`, 'valor frete': `${frete}`}));
         } 
 
     } catch (error) {
@@ -25,5 +37,3 @@ const server = http.createServer(async (req, res) => {
  });
  
 server.listen(port, () => console.log(`Servidor rodando em http://localhost:${port}/`));
-
-// npm install nodemon -D
