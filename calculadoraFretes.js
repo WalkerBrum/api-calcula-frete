@@ -40,6 +40,7 @@ const requestApiCorreios = async (cep) => {
     const response = await fetch('http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx?' + new URLSearchParams(url).toString());
 
     const xml = await response.text();
+    console.log(xml);
 
     return xml;
 }
@@ -53,6 +54,11 @@ const infoEndereco = async (cep) => {
 const prazoEntrega = async (cep) => {
     const xmlCorreios = await requestApiCorreios(cep);
     const prazoEntrega = await xmlCorreios.match(/<PrazoEntrega>(.+)<\/PrazoEntrega>/);
+    console.log(prazoEntrega);
+
+    if (prazoEntrega[1] === '0') {
+        throw customError('CEP inválido', 400)
+    }
 
     return prazoEntrega[1];
 }
@@ -60,6 +66,10 @@ const prazoEntrega = async (cep) => {
 const valorEntrega = async (cep) => {
     const xmlCorreios = await requestApiCorreios(cep);
     const valorEntrega = await xmlCorreios.match(/<Valor>(.+)<\/Valor>/);
+
+    if (valorEntrega[1] === '0') {
+        throw customError('CEP inválido', 400)
+    }
 
     return valorEntrega[1];
 }
