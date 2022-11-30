@@ -5,7 +5,7 @@ const customError = (message, status) => ({ message, status });
 
 const consultaCEP = async (cep) => {
     const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-
+    
     if (!response.data) {
         throw customError('CEP inválido', 400)
     }
@@ -49,6 +49,7 @@ const valorEntrega = async (cep) => {
     return valorEntrega[1];
 }
 
-module.exports = { infoEndereco, prazoEntrega, valorEntrega };
+
+module.exports = { infoEndereco, prazoEntrega, valorEntrega, consultaCEP };
 
 
